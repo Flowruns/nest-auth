@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity } from "typeorm";
 import { Exclude } from "class-transformer"; // ИСПРАВЛЕНИЕ 1: Импорт декоратора
 import * as bcrypt from "bcrypt";
-import { UserRole } from "./enum/UserRole";
-import { IUserDB } from "./user.interface";
+import { UserRole } from "../interfaces/enum/UserRole";
+import { IUserDB } from "../interfaces/user.interface";
 
 @Entity("user")
 export class User extends BaseEntity implements IUserDB {
