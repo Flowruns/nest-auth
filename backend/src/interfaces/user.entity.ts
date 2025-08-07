@@ -1,10 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity } from "typeorm";
 import { Exclude } from "class-transformer"; // ИСПРАВЛЕНИЕ 1: Импорт декоратора
 import * as bcrypt from "bcrypt";
 import { UserRole } from "./enum/UserRole";
+import { IUserDB } from "./user.interface";
 
 @Entity("user")
-export class User {
+export class User extends BaseEntity implements IUserDB {
     @PrimaryGeneratedColumn("uuid")
     userId: string;
 
