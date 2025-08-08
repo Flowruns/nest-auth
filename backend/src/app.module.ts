@@ -2,7 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import * as Joi from "joi";
-import { UserModule } from "./user.module";
+import { UserModule } from "./modules/user/user.module";
+import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
     imports: [
@@ -16,7 +17,8 @@ import { UserModule } from "./user.module";
                 POSTGRES_PORT: Joi.string().required(),
                 POSTGRES_DB: Joi.string().required(),
                 POSTGRES_USER: Joi.string().required(),
-                POSTGRES_PASSWORD: Joi.string().required()
+                POSTGRES_PASSWORD: Joi.string().required(),
+                JWT_SECRET: Joi.string().required()
             })
         }),
         TypeOrmModule.forRootAsync({
@@ -33,7 +35,8 @@ import { UserModule } from "./user.module";
             }),
             inject: [ConfigService]
         }),
-        UserModule
+        UserModule,
+        AuthModule
     ],
     controllers: [],
     providers: []
