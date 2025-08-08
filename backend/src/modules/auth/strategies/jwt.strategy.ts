@@ -1,24 +1,23 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, UnauthorizedException, Inject } from "@nestjs/common"; // 1. Добавьте Inject
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
-import { UserPayloadDto } from "../dto/user-payload.dto";
-import { UserService } from "../../user/services/user.service";
+import { UserPayloadDto } from "../dto";
+import { IUserServiceToken } from "../../../interfaces/user.service.interface";
+import type { IUserService } from "../../../interfaces/user.service.interface";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
         private readonly configService: ConfigService,
-        private readonly usersService: UserService
+        @Inject(IUserServiceToken) private readonly usersService: IUserService
     ) {
         const secret = configService.get<string>("JWT_SECRET");
 
-        // Добавляем проверку-предохранитель.
         if (!secret) {
             throw new InternalServerErrorException("Секрет JWT не найден в конфигурации.");
         }
 
-        // Передаем в super() переменную, тип которой теперь точно `string`
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,

@@ -1,29 +1,35 @@
-import { Controller, Get, Post, Body, Param, Delete, ParseUUIDPipe } from "@nestjs/common";
-import { UserService } from "../services/user.service";
+import { Controller, Get, Post, Body, Param, Delete, ParseUUIDPipe, Inject, HttpCode, HttpStatus } from "@nestjs/common";
 import { CreateUserDto } from "../dto/create-user.dto";
+import { UserResponseDto } from "../dto/user-response.dto";
+import { IUserServiceToken } from "../../../interfaces/user.service.interface";
+import type { IUserService } from "../../../interfaces/user.service.interface";
 import { User } from "../../../entitiesPG";
 
 @Controller("user")
 export class UserController {
-    constructor(private readonly userService: UserService) {}
+    constructor(
+        @Inject(IUserServiceToken)
+        private readonly userService: IUserService
+    ) {}
 
     @Post()
-    create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
         return this.userService.create(createUserDto);
     }
 
     @Get()
-    findAll(): Promise<User[]> {
+    findAll(): Promise<UserResponseDto[]> {
         return this.userService.findAll();
     }
 
-    @Get(":id")
-    findOne(@Param("id", ParseUUIDPipe) id: string): Promise<User> {
-        return this.userService.findOneById(id);
+    @Get(":userId")
+    findOne(@Param("userId", ParseUUIDPipe) userId: string): Promise<User | null> {
+        return this.userService.findOneById(userId);
     }
 
-    @Delete(":id")
-    remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
-        return this.userService.remove(id);
+    @Delete(":userId")
+    @HttpCode(HttpStatus.NO_CONTENT)
+    remove(@Param("userId", ParseUUIDPipe) userId: string): Promise<void> {
+        return this.userService.remove(userId);
     }
 }

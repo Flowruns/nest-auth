@@ -1,29 +1,25 @@
 import { Strategy } from "passport-local";
 import { PassportStrategy } from "@nestjs/passport";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException, Inject } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
-import { UserService } from "../../user/services/user.service";
 import { UserPayloadDto } from "../dto";
+import { IUserServiceToken } from "../../../interfaces/user.service.interface";
+import type { IUserService } from "../../../interfaces/user.service.interface";
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-    constructor(private readonly usersService: UserService) {
+    constructor(
+        @Inject(IUserServiceToken)
+        private readonly usersService: IUserService
+    ) {
         super({
             usernameField: "name",
             passwordField: "password"
         });
     }
 
-    /**
-     * NestJS автоматически вызывает этот метод при использовании LocalAuthGuard.
-     * @param name - Имя пользователя, полученное из тела запроса.
-     * @param password - Пароль, полученный из тела запроса.
-     * @returns Объект DTO с данными пользователя, если аутентификация прошла успешно.
-     * @throws UnauthorizedException если учетные данные неверны.
-     */
     async validate(name: string, password: string): Promise<UserPayloadDto> {
-        // Изменяем тип возвращаемого значения
-        const user = await this.usersService.findOneByName(name);
+        const user = await this.usersService.findOneForAuth(name);
 
         if (!user) {
             throw new UnauthorizedException("Неверные учетные данные");
@@ -35,7 +31,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
             throw new UnauthorizedException("Неверные учетные данные");
         }
 
-        // Создаем и возвращаем DTO вместо мутации сущности
         const payload: UserPayloadDto = {
             userId: user.userId,
             name: user.name,

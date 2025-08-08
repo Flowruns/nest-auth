@@ -1,98 +1,85 @@
-import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { User } from "../../../entitiesPG";
-import { CreateUserDto } from "../dto/create-user.dto";
-import { UpdateUserDto } from "../dto/update-user.dto";
+import { CreateUserDto } from "../dto";
+import { UpdateUserDto } from "../dto";
 import { UserRole } from "../../../interfaces/enum/UserRole";
+import { UserResponseDto } from "../dto";
+import { IUserService } from "../../../interfaces/user.service.interface";
 
 @Injectable()
-export class UserService {
-    constructor() {}
+export class UserService implements IUserService {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>
+    ) {}
+
+    public mapEntityToDto(user: User): UserResponseDto {
+        return {
+            userId: user.userId,
+            name: user.name,
+            surName: user.surname,
+            role: user.role
+        };
+    }
 
     async create(createUserDto: CreateUserDto): Promise<User> {
-        const existingUser = await User.findOne({ where: { name: createUserDto.name } });
-        if (existingUser) throw new ConflictException("Пользователь с таким именем уже существует");
-
         let user: User;
 
-        const usersCount = await User.count();
-
+        const usersCount = await this.userRepository.count();
         if (usersCount === 0) {
-            user = User.create({
+            user = this.userRepository.create({
                 ...createUserDto,
                 role: UserRole.SuperAdmin
             });
         } else {
-            user = User.create({
+            user = this.userRepository.create({
                 ...createUserDto,
                 role: UserRole.User
             });
         }
-
-        await user.save();
-
-        return user;
+        return this.userRepository.save(user);
     }
 
     async findAll(): Promise<User[]> {
-        return User.find();
+        return this.userRepository.find();
     }
 
-    /**
-     * Проверяет существование пользователя по ID.
-     * @param userId ID пользователя для проверки.
-     * @returns `true`, если пользователь существует, иначе `false`.
-     */
-    async existsById(userId: string): Promise<boolean> {
-        const count = await User.countBy({ userId });
-        return count > 0;
+    async findOneById(userId: string): Promise<User | null> {
+        const user = await this.userRepository.findOneBy({ userId });
+        if (!user) {
+            throw new NotFoundException(`Пользователь с айди "${userId}" не существует`);
+        }
+        return user;
     }
 
-    // Метод для поиска пользователя по ID
-    async findOneById(userId: string): Promise<User> {
-        const user = await User.findOneBy({ userId });
+    async findOneForAuth(name: string): Promise<User | null> {
+        return this.userRepository.createQueryBuilder("user").where("user.name = :name", { name }).addSelect("user.password").getOne();
+    }
+
+    async update(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
+        const user = await this.userRepository.findOneBy({ userId });
         if (!user) {
             throw new NotFoundException(`Пользователь с ID "${userId}" не найден`);
         }
-        return user;
-    }
-
-    // Метод для поиска пользователя по имени (для логина)
-    async findOneByName(name: string): Promise<User | null> {
-        return User.findOne({ where: { name } });
-    }
-
-    // Метод для обновления данных пользователя
-    async update(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
-        // Сначала находим пользователя, чтобы TypeORM мог отслеживать изменения
-        const user = await this.findOneById(userId);
-
-        // Проверяем, не пытается ли пользователь сменить имя на уже занятое
-        if (updateUserDto.name && updateUserDto.name !== user.name) {
-            const existingUser = await User.findOne({ where: { name: updateUserDto.name } });
-            if (existingUser) {
-                throw new ConflictException("Пользователь с таким именем уже существует");
-            }
-        }
-
-        // Обновляем поля пользователя данными из DTO
         Object.assign(user, updateUserDto);
-
-        // Сохраняем обновленную сущность
-        await user.save();
-        return user;
+        return this.userRepository.save(user);
     }
 
-    // Метод для удаления пользователя
     async remove(userId: string): Promise<void> {
-        const result = await User.delete(userId);
-
+        const result = await this.userRepository.delete({ userId });
         if (result.affected === 0) {
             throw new NotFoundException(`Пользователь с ID "${userId}" не найден`);
         }
     }
 
-    // Метод для подсчета пользователей
     async count(): Promise<number> {
-        return User.count();
+        return this.userRepository.count();
+    }
+
+    async existsById(userId: string): Promise<boolean> {
+        const count = await this.userRepository.countBy({ userId });
+        return count > 0;
     }
 }

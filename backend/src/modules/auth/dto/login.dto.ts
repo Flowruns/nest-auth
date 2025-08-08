@@ -1,19 +1,13 @@
-import { IsString, MinLength } from "class-validator";
+import { IsNotEmpty, IsString, MinLength } from "class-validator";
 
 export class LoginDto {
-    /**
-     * Имя пользователя для входа.
-     * Должно быть строкой и содержать не менее 3 символов.
-     */
-    @IsString({ message: "Имя пользователя должно быть строкой" })
+    @IsString()
+    @IsNotEmpty({ message: "Имя пользователя не может быть пустым" })
     @MinLength(3, { message: "Имя пользователя должно содержать не менее 3 символов" })
     name: string;
 
-    /**
-     * Пароль пользователя для входа.
-     * Должно быть строкой и содержать не менее 6 символов.
-     */
-    @IsString({ message: "Пароль должен быть строкой" })
+    @IsString()
+    @IsNotEmpty({ message: "Пароль не может быть пустым" })
     @MinLength(6, { message: "Пароль должен содержать не менее 6 символов" })
     password: string;
 }
