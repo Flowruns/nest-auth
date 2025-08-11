@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity } from "typeorm";
-import { Exclude } from "class-transformer"; // ИСПРАВЛЕНИЕ 1: Импорт декоратора
+import { Exclude } from "class-transformer";
 import * as bcrypt from "bcrypt";
 import { UserRole } from "../interfaces/enum/UserRole";
-import { IUserDB } from "../interfaces/user.interface";
+import { IUserDB } from "../interfaces";
 
 @Entity("user")
 export class User extends BaseEntity implements IUserDB {
@@ -10,6 +10,9 @@ export class User extends BaseEntity implements IUserDB {
     userId: string;
 
     @Column({ type: "varchar", length: 100, unique: true })
+    login: string;
+
+    @Column({ type: "varchar", length: 100, nullable: true })
     name: string;
 
     @Column({ type: "varchar" })
@@ -17,7 +20,7 @@ export class User extends BaseEntity implements IUserDB {
     password: string;
 
     @Column({ type: "varchar", length: 150, nullable: true })
-    surname: string;
+    surName: string;
 
     @Column({
         type: "enum",
