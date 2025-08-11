@@ -34,7 +34,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         const payload: UserPayloadDto = {
             userId: user.userId,
             name: user.name,
-            surname: user.surname,
+            surName: user.surName,
             role: user.role
         };
 

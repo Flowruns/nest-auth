@@ -1,14 +1,18 @@
 import { NestFactory, Reflector } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ClassSerializerInterceptor } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-    // Включаем глобальный интерцептор для работы @Exclude() и @Expose()
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-    await app.listen(3000);
+    const configService = app.get(ConfigService);
+
+    const port = configService.get<number>("PORT", 3000);
+
+    await app.listen(port);
 }
 
 bootstrap();

@@ -1,4 +1,4 @@
-import { CreateUserDto, UpdateUserDto, UserResponseDto } from "../modules/user/dto";
+import { CreateUserRequestDto, UpdateUserDto } from "../modules/user/dto";
 import { User } from "../entitiesPG";
 
 // Токен для внедрения зависимости остается без изменений
@@ -11,7 +11,7 @@ export interface IUserService {
      * @param createUserDto - DTO с данными для создания.
      * @returns Promise<User> - Полная сущность созданного пользователя.
      */
-    create(createUserDto: CreateUserDto): Promise<User>;
+    create(createUserDto: CreateUserRequestDto): Promise<User>;
 
     /**
      * Находит всех пользователей.
@@ -26,15 +26,15 @@ export interface IUserService {
      * @param userId - ID пользователя.
      * @returns Promise<User | null> - Сущность пользователя или null.
      */
-    findOneById(userId: string): Promise<User | null>;
+    findOneByUserId(userId: string): Promise<User | null>;
 
     /**
      * Специализированный метод для поиска пользователя при аутентификации.
      * Важно, чтобы этот метод возвращал сущность с полем password.
-     * @param name - Имя пользователя (логин).
+     * @param login - login пользователя (логин).
      * @returns Promise<User | null> - Сущность пользователя с паролем или null.
      */
-    findOneForAuth(name: string): Promise<User | null>;
+    findOneForAuth(login: string): Promise<User | null>;
 
     /**
      * Обновляет данные пользователя.
@@ -66,12 +66,4 @@ export interface IUserService {
      * @note Этот метод был в вашей реализации, добавляем его в интерфейс для полноты.
      */
     existsById(userId: string): Promise<boolean>;
-
-    /**
-     * Публичный метод для преобразования сущности в безопасный DTO.
-     * Контроллеры будут использовать этот метод перед отправкой ответа клиенту.
-     * @param user - Полная сущность User.
-     * @returns UserResponseDto - "Безопасный" DTO без чувствительных данных.
-     */
-    mapEntityToDto(user: User): UserResponseDto;
 }

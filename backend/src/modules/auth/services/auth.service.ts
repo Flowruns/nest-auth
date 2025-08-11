@@ -1,43 +1,42 @@
-import { Injectable, UnauthorizedException, OnApplicationBootstrap, Logger, Inject } from "@nestjs/common";
+import { Injectable, UnauthorizedException, Inject, BadRequestException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { LoginDto } from "../dto";
 import { IUserServiceToken, type IUserService } from "../../../interfaces/user.service.interface";
-import { UserResponseDto } from "../../user/dto";
+import { CreateUserRequestDto } from "../../user/dto";
+import { User } from "../../../entitiesPG";
 
 @Injectable()
-export class AuthService implements OnApplicationBootstrap {
-    private readonly logger = new Logger(AuthService.name);
+export class AuthService {
+    @Inject(IUserServiceToken)
+    private readonly usersService: IUserService;
 
-    constructor(
-        @Inject(IUserServiceToken)
-        private readonly usersService: IUserService,
-        private readonly jwtService: JwtService
-    ) {}
+    @Inject(JwtService)
+    private readonly jwtService: JwtService;
 
-    async onApplicationBootstrap() {
-        const userCount = await this.usersService.count();
-        if (userCount === 0) {
-            this.logger.warn("База данных пуста. Первый зарегистрированный пользователь получит роль SuperAdmin.");
+    constructor() {}
+
+    async register(createUserDto: CreateUserRequestDto): Promise<User> {
+        // Проверяем, не существует ли уже пользователь с таким логином
+        const existingUser = await this.usersService.findOneForAuth(createUserDto.login);
+        if (existingUser) {
+            throw new BadRequestException(`Пользователь с логином "${createUserDto.login}" уже существует`);
         }
-    }
-
-    async register(loginDto: LoginDto): Promise<UserResponseDto> {
-        const user = await this.usersService.findOneForAuth(loginDto.name);
-
-        if (user) {
-            const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
-            if (isPasswordMatching) {
-                const { password, ...result } = user;
-                return result;
-            }
-        }
-
-        throw new UnauthorizedException("Неверные имя пользователя или пароль");
+        return this.usersService.create(createUserDto);
     }
 
     async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
-        const user = await this.register(loginDto);
+        const user = await this.usersService.findOneForAuth(loginDto.login);
+
+        if (!user) {
+            throw new UnauthorizedException("Неверный логин или пароль");
+        }
+
+        const isPasswordMatching = await bcrypt.compare(loginDto.password, user.password);
+
+        if (!isPasswordMatching) {
+            throw new UnauthorizedException("Неверный логин или пароль");
+        }
 
         const payload = {
             userId: user.userId,

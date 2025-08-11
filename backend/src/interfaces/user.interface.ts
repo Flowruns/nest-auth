@@ -4,6 +4,6 @@ export interface IUserDB {
     userId: string;
     name: string;
     password?: string;
-    surname: string | null;
+    surName: string | null;
     role: UserRole;
 }

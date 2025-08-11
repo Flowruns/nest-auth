@@ -6,10 +6,13 @@ export class UserResponseDto {
     userId: string;
 
     @IsString()
+    login: string;
+
+    @IsString()
     name: string;
 
     @IsString()
-    surName?: string;
+    surName: string;
 
     @IsEnum(UserRole)
     role: UserRole;

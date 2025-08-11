@@ -1,10 +1,15 @@
 import { IsString, MinLength, IsOptional, IsEnum } from "class-validator";
 import { UserRole } from "../../../interfaces/enum/UserRole";
 
-export class CreateUserDto {
+export class CreateUserRequestDto {
+    @IsOptional()
     @IsString()
     @MinLength(3, { message: "Имя должно содержать не менее 3 символов" })
     name: string;
+
+    @IsString()
+    @MinLength(3, { message: "Login должен содержать не менее 3 символов" })
+    login: string;
 
     @IsString()
     @MinLength(6, { message: "Пароль должен содержать не менее 6 символов" })
@@ -12,7 +17,7 @@ export class CreateUserDto {
 
     @IsString()
     @IsOptional()
-    surname?: string;
+    surName: string;
 
     @IsEnum(UserRole)
     @IsOptional()

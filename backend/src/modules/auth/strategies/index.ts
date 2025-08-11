@@ -1,2 +1,2 @@
-export * from "./local.strategy";
-export * from "./jwt.strategy";
+export { LocalStrategy } from "./local.strategy";
+export { JwtStrategy } from "./jwt.strategy";

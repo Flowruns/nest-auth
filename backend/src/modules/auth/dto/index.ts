@@ -1,2 +1,2 @@
-export * from "./login.dto";
-export * from "./user-payload.dto";
+export { LoginDto } from "./login.dto";
+export { UserPayloadDto } from "./userPayload.dto";

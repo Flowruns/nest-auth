@@ -1,9 +1,21 @@
-import { Controller, Get, Post, Body, Param, Delete, ParseUUIDPipe, Inject, HttpCode, HttpStatus } from "@nestjs/common";
-import { CreateUserDto } from "../dto/create-user.dto";
-import { UserResponseDto } from "../dto/user-response.dto";
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    ParseUUIDPipe,
+    Inject,
+    HttpCode,
+    HttpStatus,
+    NotFoundException,
+    Patch
+} from "@nestjs/common";
+import { ApiResponseDto, CreateUserRequestDto, UpdateUserDto } from "../dto";
+import { UserResponseDto } from "../dto";
 import { IUserServiceToken } from "../../../interfaces/user.service.interface";
 import type { IUserService } from "../../../interfaces/user.service.interface";
-import { User } from "../../../entitiesPG";
 
 @Controller("user")
 export class UserController {
@@ -13,23 +25,53 @@ export class UserController {
     ) {}
 
     @Post()
-    create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-        return this.userService.create(createUserDto);
+    @HttpCode(HttpStatus.CREATED)
+    async create(@Body() createUserDto: CreateUserRequestDto): Promise<ApiResponseDto<UserResponseDto>> {
+        const user = await this.userService.create(createUserDto);
+        return {
+            success: true,
+            message: "User created successfully",
+            data: user
+        };
     }
 
     @Get()
-    findAll(): Promise<UserResponseDto[]> {
-        return this.userService.findAll();
+    async findAll(): Promise<ApiResponseDto<UserResponseDto[]>> {
+        const users = await this.userService.findAll();
+        return {
+            success: true,
+            message: "Users retrieved successfully",
+            data: users
+        };
     }
 
     @Get(":userId")
-    findOne(@Param("userId", ParseUUIDPipe) userId: string): Promise<User | null> {
-        return this.userService.findOneById(userId);
+    async findOne(@Param("userId", ParseUUIDPipe) userId: string): Promise<Promise<UserResponseDto> | null> {
+        return this.userService.findOneByUserId(userId);
+    }
+
+    @Patch(":userId")
+    async update(
+        @Param("userId", ParseUUIDPipe) userId: string,
+        @Body() updateUserDto: UpdateUserDto
+    ): Promise<ApiResponseDto<UserResponseDto>> {
+        const updatedUser = await this.userService.update(userId, updateUserDto);
+        if (!updatedUser) {
+            throw new NotFoundException(`Пользователь с userId ${userId} не найден`);
+        }
+        return {
+            success: true,
+            message: "User updated successfully",
+            data: updatedUser
+        };
     }
 
     @Delete(":userId")
-    @HttpCode(HttpStatus.NO_CONTENT)
-    remove(@Param("userId", ParseUUIDPipe) userId: string): Promise<void> {
-        return this.userService.remove(userId);
+    @HttpCode(HttpStatus.OK)
+    async remove(@Param("userId", ParseUUIDPipe) userId: string): Promise<ApiResponseDto<null>> {
+        await this.userService.remove(userId);
+        return {
+            success: true
+        };
     }
 }
