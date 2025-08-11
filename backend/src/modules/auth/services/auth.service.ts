@@ -3,7 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { LoginDto } from "../dto";
 import { IUserServiceToken, type IUserService } from "../../../interfaces/user.service.interface";
-import { CreateUserRequestDto } from "../../user/dto";
+import { CreateUserRequestDto, UserResponseDto } from '../../user/dto';
 import { User } from "../../../entitiesPG";
 
 @Injectable()
@@ -16,13 +16,12 @@ export class AuthService {
 
     constructor() {}
 
-    async register(createUserDto: CreateUserRequestDto): Promise<User> {
-        // Проверяем, не существует ли уже пользователь с таким логином
+    async register(createUserDto: CreateUserRequestDto): Promise<UserResponseDto> {
         const existingUser = await this.usersService.findOneForAuth(createUserDto.login);
         if (existingUser) {
             throw new BadRequestException(`Пользователь с логином "${createUserDto.login}" уже существует`);
         }
-        return this.usersService.create(createUserDto);
+        return await this.usersService.create(createUserDto);
     }
 
     async login(loginDto: LoginDto): Promise<{ accessToken: string }> {

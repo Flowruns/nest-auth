@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "../../../entitiesPG";
-import { CreateUserRequestDto } from "../dto";
+import { CreateUserRequestDto, UserResponseDto } from '../dto';
 import { UpdateUserDto } from "../dto";
 import { UserRole } from "../../../interfaces/enum/UserRole";
 import { IUserService } from "../../../interfaces/user.service.interface";
@@ -12,13 +12,24 @@ export class UserService implements IUserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>;
 
-    async create(createUserDto: CreateUserRequestDto): Promise<User> {
+    private toResponseDto(user: User): UserResponseDto {
+        return {
+            userId: user.userId,
+            login: user.login,
+            name: user.name,
+            surName: user.surName,
+            role: user.role
+        };
+    }
+
+    async create(createUserDto: CreateUserRequestDto): Promise<UserResponseDto> {
         const usersCount = await this.userRepository.count();
-        const user = this.userRepository.create({
+        const userEntity = this.userRepository.create({
             ...createUserDto,
             role: usersCount !== 0 ? UserRole.User : UserRole.SuperAdmin
         });
-        return this.userRepository.save(user);
+        const savedUser = await this.userRepository.save(userEntity);
+        return this.toResponseDto(savedUser);
     }
 
     async findAll(): Promise<User[]> {
@@ -33,14 +44,10 @@ export class UserService implements IUserService {
     }
 
     async findOneForAuth(login: string): Promise<User | null> {
-        return this.userRepository
-          .createQueryBuilder("user")
-          .addSelect("user.password")
-          .where("user.login = :login", { login })
-          .getOne();
+        return this.userRepository.createQueryBuilder("user").addSelect("user.password").where("user.login = :login", { login }).getOne();
     }
 
-    async update(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
+    async update(userId: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
         const user = await this.userRepository.findOneBy({ userId });
         if (!user) throw new NotFoundException(`Пользователь с userId "${userId}" не найден`);
         Object.assign(user, updateUserDto);

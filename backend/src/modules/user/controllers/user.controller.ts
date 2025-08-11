@@ -9,8 +9,8 @@ import {
     Inject,
     HttpCode,
     HttpStatus,
-    NotFoundException,
-    Patch
+    Patch,
+    NotFoundException
 } from "@nestjs/common";
 import { ApiResponseDto, CreateUserRequestDto, UpdateUserDto } from "../dto";
 import { UserResponseDto } from "../dto";
@@ -27,27 +27,36 @@ export class UserController {
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async create(@Body() createUserDto: CreateUserRequestDto): Promise<ApiResponseDto<UserResponseDto>> {
-        const user = await this.userService.create(createUserDto);
+        const userDto = await this.userService.create(createUserDto);
         return {
             success: true,
             message: "User created successfully",
-            data: user
+            data: userDto
         };
     }
 
     @Get()
     async findAll(): Promise<ApiResponseDto<UserResponseDto[]>> {
-        const users = await this.userService.findAll();
+        const usersDto = await this.userService.findAll();
         return {
             success: true,
             message: "Users retrieved successfully",
-            data: users
+            data: usersDto
         };
     }
 
     @Get(":userId")
-    async findOne(@Param("userId", ParseUUIDPipe) userId: string): Promise<Promise<UserResponseDto> | null> {
-        return this.userService.findOneByUserId(userId);
+    async findOne(@Param("userId", ParseUUIDPipe) userId: string): Promise<ApiResponseDto<UserResponseDto>> {
+        const userDto = await this.userService.findOneByUserId(userId);
+
+        if (!userDto) {
+            throw new NotFoundException(`Пользователь с userId "${userId}" не найден`);
+        }
+
+        return {
+            success: true,
+            data: userDto
+        };
     }
 
     @Patch(":userId")
@@ -55,14 +64,11 @@ export class UserController {
         @Param("userId", ParseUUIDPipe) userId: string,
         @Body() updateUserDto: UpdateUserDto
     ): Promise<ApiResponseDto<UserResponseDto>> {
-        const updatedUser = await this.userService.update(userId, updateUserDto);
-        if (!updatedUser) {
-            throw new NotFoundException(`Пользователь с userId ${userId} не найден`);
-        }
+        const updatedUserDto = await this.userService.update(userId, updateUserDto);
         return {
             success: true,
             message: "User updated successfully",
-            data: updatedUser
+            data: updatedUserDto
         };
     }
 
@@ -71,7 +77,8 @@ export class UserController {
     async remove(@Param("userId", ParseUUIDPipe) userId: string): Promise<ApiResponseDto<null>> {
         await this.userService.remove(userId);
         return {
-            success: true
+            success: true,
+            message: "User deleted successfully"
         };
     }
 }
