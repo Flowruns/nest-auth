@@ -16,4 +16,12 @@ export class UserResponseDto {
 
     @IsEnum(UserRole)
     role: UserRole;
+
+    constructor(user: UserResponseDto) {
+        this.userId = user.userId;
+        this.login = user.login;
+        this.name = user.name;
+        this.surName = user.surName;
+        this.role = user.role;
+    }
 }

@@ -3,7 +3,6 @@
 import { useAuthForm } from '@/hooks/useAuthForm';
 import { Box, Tabs, Tab, Alert } from '@mui/material';
 import Button from '@/components/UI/Button';
-// Импортируем наши новые компоненты
 import LoginForm from './LoginForm';
 import RegistrationForm from './RegistrationForm';
 
@@ -72,12 +71,6 @@ export default function AuthForm() {
           variant="contained"
           size="large"
           loading={isLoading}
-          sx={{
-            mt: 3,
-            background: 'linear-gradient(45deg, #76FE03 30%, #18FFFF 90%)',
-            color: '#2E2E2E',
-            fontWeight: 'bold'
-          }}
         >
           {tabIndex === 0 ? 'Войти' : 'Зарегистрироваться'}
         </Button>

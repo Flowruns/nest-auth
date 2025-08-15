@@ -18,8 +18,14 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "include": ["src/**/*", "src/types/**/*.d.ts"],
+    "exclude": ["node_modules", "dist"]
   }
 }

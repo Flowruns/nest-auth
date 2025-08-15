@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "../../../entitiesPG";
-import { CreateUserRequestDto, UserResponseDto } from '../dto';
+import { CreateUserRequestDto, UserResponseDto } from "../dto";
 import { UpdateUserDto } from "../dto";
 import { UserRole } from "../../../interfaces/enum/UserRole";
 import { IUserService } from "../../../interfaces/user.service.interface";
@@ -32,8 +32,9 @@ export class UserService implements IUserService {
         return this.toResponseDto(savedUser);
     }
 
-    async findAll(): Promise<User[]> {
-        return this.userRepository.find();
+    async findAll(): Promise<UserResponseDto[]> {
+        const users = await this.userRepository.find();
+        return users.map((user) => this.toResponseDto(user));
     }
 
     async findOneByUserId(userId: string): Promise<User> {

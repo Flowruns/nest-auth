@@ -17,7 +17,7 @@ import { UserResponseDto } from "../dto";
 import { IUserServiceToken } from "../../../interfaces/user.service.interface";
 import type { IUserService } from "../../../interfaces/user.service.interface";
 
-@Controller("user")
+@Controller("users")
 export class UserController {
     constructor(
         @Inject(IUserServiceToken)
