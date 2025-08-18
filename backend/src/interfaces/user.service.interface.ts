@@ -16,6 +16,8 @@ export interface IUserService {
 
     remove(userId: string): Promise<void>;
 
+    changePassword(userId: string, currentPass: string, newPass: string): Promise<void>;
+
     count(): Promise<number>;
 
     existsById(userId: string): Promise<boolean>;

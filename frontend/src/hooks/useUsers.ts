@@ -2,17 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getAllUsers } from '@/lib/api';
-
-interface User {
-  userId: string;
-  login: string;
-  name: string;
-  surName: string;
-  role: string;
-}
+import { UserInterface } from '@/types/auth.types';
 
 export function useUsers() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserInterface[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +14,13 @@ export function useUsers() {
     setError(null);
     try {
       const response = await getAllUsers();
-      setUsers(response.data || []);
+
+      if (response.success && response.data) {
+        setUsers(response.data);
+      } else {
+        setError(response.message || 'Не удалось получить данные пользователей');
+        setUsers([]);
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

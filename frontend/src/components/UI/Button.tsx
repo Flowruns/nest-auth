@@ -6,11 +6,13 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 interface ButtonProps extends MuiButtonProps {
   isLoading?: boolean;
+  hasGradient?: boolean;
 }
 
 export default function Button({
                                  children,
                                  isLoading = false,
+                                 hasGradient = true,
                                  sx,
                                  disabled,
                                  ...props
@@ -25,7 +27,9 @@ export default function Button({
         textTransform: 'none',
         fontSize: '0.875rem',
         mt: 3,
-        background: 'linear-gradient(45deg, #76FE03 30%, #18FFFF 90%)',
+        background: hasGradient
+          ? 'linear-gradient(45deg, #76FE03 30%, #18FFFF 90%)'
+          : 'none',
         color: '#2E2E2E',
         fontWeight: 'bold',
         ...sx,

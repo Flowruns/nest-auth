@@ -25,7 +25,7 @@ export default function HomePage() {
   const isSuperAdmin = user.role === 'superAdmin';
 
   return (
-    <Box sx={{ p: 3, pt: 2 }}> {/* Уменьшаем верхний отступ */}
+    <Box sx={{ p: 3, pt: 2 }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs
           value={value}

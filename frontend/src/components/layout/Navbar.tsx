@@ -32,7 +32,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
       />
       <Button
         onClick={onLogout}
-        sx={{ textTransform: 'none', width: 'auto', mt: 0 }}
+        sx={{ textTransform: 'none', mt: 0, width: '10%'}}
       >
         Выйти
       </Button>

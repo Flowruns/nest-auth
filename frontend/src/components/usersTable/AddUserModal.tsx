@@ -9,7 +9,6 @@ import {
   TextField,
   Box,
   Alert,
-  Button as MuiButton,
 } from '@mui/material';
 import { useCreateUser, CreateUserFormData } from '@/hooks/useCreateUser';
 import Button from '@/components/UI/Button';
@@ -87,21 +86,10 @@ export default function AddUserModal({ open, onClose, onSuccess }: AddUserModalP
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: '0 24px 16px' }}>
-        <MuiButton
-          onClick={handleClose}
-          variant="text"
-          sx={{
-            textTransform: 'none',
-            color: 'text.secondary',
-            mt: 3,
-            py: '0.65rem',
-            fontSize: '0.875rem'
-          }}
-          disabled={isLoading}
-        >
+        <Button onClick={handleClose} color="secondary" disabled={isLoading} hasGradient={false}  sx={{width: '30%'}}>
           Отмена
-        </MuiButton>
-        <Button onClick={handleSubmit} isLoading={isLoading} sx={{ width: 'auto' }}>
+        </Button>
+        <Button onClick={handleSubmit} isLoading={isLoading} sx={{ width: '30%' }}>
           Создать
         </Button>
       </DialogActions>

@@ -22,8 +22,35 @@ export enum UserRole {
 
 export interface UserInterface {
   userId: string;
+  login: string;
   name: string;
   surName: string;
   role: UserRole;
+  createdAt: string;
+}
+
+export type CreateUserInterface = {
+  name?: string;
+  login: string;
+  password: string;
+  surName?: string;
+  role?: UserRole;
+};
+
+export type UpdateUserInterface = {
+  login: string;
+  name?: string;
+  surName?: string;
+};
+
+export type ChangePasswordInterface = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export interface ApiError {
+  message: string;
+  statusCode: number;
+  error: string;
 }
 

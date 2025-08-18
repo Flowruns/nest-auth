@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -13,36 +13,74 @@ import {
   CircularProgress,
   Typography,
   TablePagination,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
+
 import { useUsers } from '@/hooks/useUsers';
+import { useDeleteUser } from '@/hooks/useDeleteUser';
 import AddUserModal from './AddUserModal';
+import EditUserModal from './EditUserModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 import UserSuccessModal from '@/components/usersTable/UserSuccessModal';
 import Button from '@/components/UI/Button';
 import { CreateUserFormData } from '@/hooks/useCreateUser';
+import { UserInterface } from '@/types/auth.types';
 
 export default function UserTable() {
   const { users, loading, error, fetchUsers } = useUsers();
-  const [isModalOpen, setModalOpen] = useState(false);
+
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isSuccessModalOpen, setSuccessModalOpen] = useState(false);
   const [newUserData, setNewUserData] = useState<CreateUserFormData | null>(null);
 
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserInterface | null>(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5)
 
   const handleUserCreationSuccess = (data: CreateUserFormData) => {
-    setModalOpen(false);
+    setAddModalOpen(false);
     setNewUserData(data);
     setSuccessModalOpen(true);
     fetchUsers();
   };
 
-  const handleCloseSuccessModal = () => {
-    setSuccessModalOpen(false);
-    setNewUserData(null);
+  const {
+    isLoading: isDeleting,
+    handleDelete,
+  } = useDeleteUser({
+    onSuccess: () => {
+      setDeleteModalOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    },
+  });
+
+  const handleOpenEditModal = (user: UserInterface) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  };
+
+  const handleOpenDeleteModal = (user: UserInterface) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleCloseModals = () => {
+    setEditModalOpen(false);
+    setDeleteModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedUser) {
+      handleDelete(selectedUser.userId);
+    }
   };
 
   const handleChangePage = (_: unknown, newPage: number) => {
@@ -54,7 +92,7 @@ export default function UserTable() {
     setPage(0);
   };
 
-  if (loading) {
+  if (loading && users.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <CircularProgress />
@@ -77,7 +115,8 @@ export default function UserTable() {
               <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Логин</TableCell>
               <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Имя</TableCell>
               <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Фамилия</TableCell>
-              <TableCell>Роль</TableCell>
+              <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Роль</TableCell>
+              <TableCell align="center" sx={{ width: '120px' }}>Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -86,7 +125,19 @@ export default function UserTable() {
                 <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>{user.login}</TableCell>
                 <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>{user.name}</TableCell>
                 <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>{user.surName}</TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>{user.role}</TableCell>
+                <TableCell align="center" sx={{ width: '120px' }}>
+                  <Tooltip title="Редактировать">
+                    <IconButton onClick={() => handleOpenEditModal(user)}sx={{color: "blue"}}>
+                      <EditRoundedIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Удалить">
+                    <IconButton onClick={() => handleOpenDeleteModal(user)} sx={{color: "red"}}>
+                      <DeleteForeverRoundedIcon />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -103,20 +154,33 @@ export default function UserTable() {
       </TableContainer>
 
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button onClick={() => setModalOpen(true)} sx={{ width: 'auto' }}>
+        <Button onClick={() => setAddModalOpen(true)} sx={{ width: 'auto' }}>
           Добавить нового пользователя
         </Button>
       </Box>
 
       <AddUserModal
-        open={isModalOpen}
-        onClose={() => setModalOpen(false)}
+        open={isAddModalOpen}
+        onClose={() => setAddModalOpen(false)}
         onSuccess={handleUserCreationSuccess}
       />
       <UserSuccessModal
         open={isSuccessModalOpen}
-        onClose={handleCloseSuccessModal}
+        onClose={() => setSuccessModalOpen(false)}
         userData={newUserData}
+      />
+      <EditUserModal
+        open={isEditModalOpen}
+        onClose={handleCloseModals}
+        onSuccess={fetchUsers}
+        user={selectedUser}
+      />
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onClose={handleCloseModals}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        userName={selectedUser?.name}
       />
     </Box>
   );

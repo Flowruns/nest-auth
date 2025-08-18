@@ -10,13 +10,16 @@ import {
     HttpCode,
     HttpStatus,
     Patch,
-    NotFoundException
+    NotFoundException,
+    UseGuards
 } from "@nestjs/common";
 import { ApiResponseDto, CreateUserRequestDto, UpdateUserDto } from "../dto";
 import { UserResponseDto } from "../dto";
 import { IUserServiceToken } from "../../../interfaces/user.service.interface";
 import type { IUserService } from "../../../interfaces/user.service.interface";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ChangePasswordDto } from "../dto/changePassword.dto";
+import { AuthGuard } from "../../auth/guards/auth.guard";
 
 @ApiTags("Users")
 @ApiBearerAuth()
@@ -79,5 +82,22 @@ export class UserController {
     async remove(@Param("userId", ParseUUIDPipe) userId: string): Promise<ApiResponseDto<null>> {
         await this.userService.remove(userId);
         return { success: true, message: "User deleted successfully" };
+    }
+
+    @UseGuards(AuthGuard)
+    @Patch(":userId/password")
+    @ApiOperation({ summary: "Изменение пароля пользователя" })
+    @ApiParam({ name: "userId", description: "UUID пользователя", type: "string" })
+    @ApiResponse({ status: 200, description: "Пароль успешно изменен" })
+    @ApiResponse({ status: 400, description: "Неверный текущий пароль" })
+    @ApiResponse({ status: 401, description: "Неавторизован" })
+    @ApiResponse({ status: 404, description: "Пользователь не найден" })
+    @HttpCode(HttpStatus.OK)
+    async changePassword(
+        @Param("userId", ParseUUIDPipe) userId: string,
+        @Body() changePasswordDto: ChangePasswordDto
+    ): Promise<ApiResponseDto<null>> {
+        await this.userService.changePassword(userId, changePasswordDto.currentPassword, changePasswordDto.newPassword);
+        return { success: true, message: "Password changed successfully" };
     }
 }
