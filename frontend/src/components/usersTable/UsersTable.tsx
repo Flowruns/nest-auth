@@ -26,7 +26,6 @@ export default function UserTable() {
   const [isSuccessModalOpen, setSuccessModalOpen] = useState(false);
   const [newUserData, setNewUserData] = useState<CreateUserFormData | null>(null);
 
-  // Пагинация
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -67,7 +66,6 @@ export default function UserTable() {
     return <Typography color="error">{error}</Typography>;
   }
 
-  // Выбираем пользователей для текущей страницы
   const visibleUsers = users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
@@ -75,7 +73,7 @@ export default function UserTable() {
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#e0f7fa' }}>
+            <TableRow sx={{ backgroundColor: '#E9FAFD' }}>
               <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Логин</TableCell>
               <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Имя</TableCell>
               <TableCell sx={{ borderRight: '1px solid rgba(224,224,224,1)' }}>Фамилия</TableCell>

@@ -20,19 +20,24 @@ async function bootstrap() {
 
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-    const config = new DocumentBuilder()
-        .setTitle("API PNalog")
-        .setDescription("")
-        .setVersion("1.0")
-        .addTag("Auth", "Операции для аутентификации и авторизации")
-        .addTag("Users", "Операции для управления пользователями")
-        .addBearerAuth()
-        .build();
-
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("api/docs", app, document);
-
     const configService = app.get(ConfigService);
+
+    if (configService.get<string>("NODE_ENV") === "development") {
+        const config = new DocumentBuilder()
+            .setTitle("API PNalog")
+            .setDescription("")
+            .setVersion("1.0")
+            .addTag("Auth", "Операции для аутентификации и авторизации")
+            .addTag("Users", "Операции для управления пользователями")
+            .addBearerAuth()
+            .build();
+
+        const document = SwaggerModule.createDocument(app, config);
+        SwaggerModule.setup("api/docs", app, document);
+
+        console.log(`Swagger documentation is available at: http://localhost:${configService.get("PORT")}/api/docs`);
+    }
+
     const port = configService.get<number>("PORT", 3000);
 
     await app.listen(port);
