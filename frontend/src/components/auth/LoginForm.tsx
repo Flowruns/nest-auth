@@ -1,3 +1,5 @@
+'use client';
+
 import { Stack } from '@mui/material';
 import Input from '@/components/UI/Input';
 

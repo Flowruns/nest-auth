@@ -14,3 +14,16 @@ export interface LoginInterface {
 export interface AuthResponseInterface {
   accessToken: string;
 }
+
+export enum UserRole {
+  User = "user",
+  SuperAdmin = "superAdmin"
+}
+
+export interface UserInterface {
+  userId: string;
+  name: string;
+  surName: string;
+  role: UserRole;
+}
+
