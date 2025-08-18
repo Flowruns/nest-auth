@@ -3,8 +3,9 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { LoginDto } from "../dto";
 import { IUserServiceToken, type IUserService } from "../../../interfaces/user.service.interface";
-import { CreateUserRequestDto, UserResponseDto } from '../../user/dto';
-import { User } from "../../../entitiesPG";
+import { CreateUserRequestDto, UserResponseDto } from "../../user/dto";
+import { TokenPayload } from "../../../interfaces/request.user.interface";
+import { User } from "src/entitiesPG";
 
 @Injectable()
 export class AuthService {
@@ -46,5 +47,12 @@ export class AuthService {
         return {
             accessToken: this.jwtService.sign(payload)
         };
+    }
+
+    getProfile(user: User): UserResponseDto {
+        // Не нужно делать лишних проверок или запросов,
+        // так как Guard уже гарантировал существование пользователя.
+        // Мы просто преобразуем полученные данные в DTO.
+        return new UserResponseDto(user);
     }
 }

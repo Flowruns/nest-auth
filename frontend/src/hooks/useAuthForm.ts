@@ -2,14 +2,14 @@
 
 import { useState, FormEvent, ChangeEvent, SyntheticEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { registerUser, loginUser } from '@/services/authService';
-import { AxiosError } from 'axios';
+import { useAuth } from '@/context/AuthContext';
 import { CreateUserRequestInterface, LoginInterface } from '@/types/auth.types';
 
 type FormData = CreateUserRequestInterface;
 
 export const useAuthForm = () => {
   const router = useRouter();
+  const { login, register, error: authError, isLoading } = useAuth();
   const [tabIndex, setTabIndex] = useState(0);
 
   const [formData, setFormData] = useState<FormData>({
@@ -20,7 +20,6 @@ export const useAuthForm = () => {
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -35,7 +34,6 @@ export const useAuthForm = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
     try {
@@ -44,31 +42,25 @@ export const useAuthForm = () => {
           login: formData.login,
           password: formData.password,
         };
-        await loginUser(dataToSend);
-        alert('Вход выполнен успешно!');
-        router.push('/dashboard');
+        await login(dataToSend);
+        router.push('/home');
       } else {
         const dataToSend: CreateUserRequestInterface = {
           login: formData.login,
           password: formData.password,
+          name: formData.name,
+          surName: formData.surName,
         };
-        if (formData.name) dataToSend.name = formData.name;
-        if (formData.surName) dataToSend.surName = formData.surName;
-
-        await registerUser(dataToSend);
+        await register(dataToSend);
         alert('Регистрация прошла успешно! Теперь вы можете войти.');
         setTabIndex(0);
       }
     } catch (err) {
-      let errorMessage = 'Произошла непредвиденная ошибка';
-      if (err instanceof AxiosError) {
-        errorMessage = err.response?.data?.message || 'Ошибка при запросе к серверу';
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Произошла неизвестная ошибка');
       }
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -76,7 +68,7 @@ export const useAuthForm = () => {
     tabIndex,
     formData,
     isLoading,
-    error,
+    error: error || authError,
     handleTabChange,
     handleInputChange,
     handleSubmit,
