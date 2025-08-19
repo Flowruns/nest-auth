@@ -24,6 +24,14 @@ export class UserService implements IUserService {
         };
     }
 
+    private async findUserOrThrow(userId: string): Promise<User> {
+        const user = await this.userRepository.findOneBy({ userId });
+        if (!user) {
+            throw new NotFoundException(`Пользователь с userId "${userId}" не найден`);
+        }
+        return user;
+    }
+
     async create(createUserDto: CreateUserRequestDto): Promise<UserResponseDto> {
         const usersCount = await this.userRepository.count();
         const userEntity = this.userRepository.create({
@@ -43,11 +51,9 @@ export class UserService implements IUserService {
         return users.map((user) => this.toResponseDto(user));
     }
 
-    async findOneByUserId(userId: string): Promise<User> {
-        const user = await this.userRepository.findOneBy({ userId });
-        if (!user) throw new NotFoundException(`Пользователь с userId "${userId}" не существует`);
-
-        return user;
+    async findOneByUserId(userId: string): Promise<UserResponseDto> {
+        const user = await this.findUserOrThrow(userId);
+        return this.toResponseDto(user);
     }
 
     async findOneForAuth(login: string): Promise<User | null> {
@@ -61,17 +67,17 @@ export class UserService implements IUserService {
         return this.userRepository.save(user);
     }
 
-    async remove(userId: string): Promise<void> {
-        const result = await this.userRepository.delete({ userId });
-        if (result.affected === 0) throw new NotFoundException(`Пользователь с userId "${userId}" не найден`);
+    async remove(userId: string): Promise<{ message: string }> {
+        await this.findUserOrThrow(userId);
+        await this.userRepository.delete({ userId });
+        return { message: `Пользователь с userId "${userId}" успешно удален` };
     }
 
-    async changePassword(userId: string, currentPass: string, newPass: string): Promise<void> {
-        const user = await this.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .where("user.userId = :userId", { userId })
-            .getOne();
+    async changePassword(userId: string, currentPass: string, newPass: string): Promise<{ message: string }> {
+        const user = await this.userRepository.findOne({
+            where: { userId },
+            select: ["userId", "password"]
+        });
 
         if (!user) {
             throw new NotFoundException(`Пользователь с userId "${userId}" не найден`);
@@ -86,6 +92,8 @@ export class UserService implements IUserService {
         const hashedPassword = await bcrypt.hash(newPass, 10);
 
         await this.userRepository.update({ userId }, { password: hashedPassword });
+
+        return { message: "Пароль успешно изменен" };
     }
 
     async count(): Promise<number> {

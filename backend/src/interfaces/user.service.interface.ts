@@ -14,9 +14,9 @@ export interface IUserService {
 
     update(userId: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto>;
 
-    remove(userId: string): Promise<void>;
+    remove(userId: string): Promise<{ message: string }>;
 
-    changePassword(userId: string, currentPass: string, newPass: string): Promise<void>;
+    changePassword(userId: string, currentPass: string, newPass: string): Promise<{ message: string }>;
 
     count(): Promise<number>;
 
